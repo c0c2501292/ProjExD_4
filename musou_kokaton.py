@@ -166,13 +166,12 @@ class Enemy(pg.sprite.Sprite):
             self.vy = 0
             self.state = "stop"
         self.rect.move_ip(self.vx, self.vy)
-
-
+        
 class Score:
     def __init__(self):
         self.font = pg.font.Font(None, 50)
         self.color = (0, 0, 255)
-        self.value = 0
+        self.value = 99990
         self.image = self.font.render(f"Score: {self.value}", 0, self.color)
         self.rect = self.image.get_rect()
         self.rect.center = 100, HEIGHT-50
@@ -244,7 +243,27 @@ class Gravity(pg.sprite.Sprite):
         if self.life < 0:
             self.kill()
 
+class EMP:
+    """
+    電磁パルス（EMP）: 発動時に存在する敵機と爆弾を無効化する
+    """
+    def __init__(self, enemies: pg.sprite.Group, bombs: pg.sprite.Group, screen: pg.Surface):
+        for emy in enemies:
+            emy.interval = float("inf")
+            emy.image = pg.transform.laplacian(emy.image)
+            emy.image.set_colorkey((0, 0, 0))
 
+        for bomb in bombs:
+            bomb.speed /= 2
+            bomb.state = "inactive"
+
+        emp_img = pg.Surface((WIDTH, HEIGHT))
+        pg.draw.rect(emp_img, (255, 255, 0), (0, 0, WIDTH, HEIGHT))
+        emp_img.set_alpha(100)
+        screen.blit(emp_img, [0, 0])
+        pg.display.update()
+        time.sleep(0.05)
+        
 def main():
     pg.display.set_caption("真！こうかとん無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -287,6 +306,11 @@ def main():
                     score.value -= 200
                     gravities.add(Gravity(400))
 
+                    
+                if event.key == pg.K_e and score.value > 20:
+                    score.value -= 20
+                    EMP(emys, bombs, screen)
+                
         screen.blit(bg_img, [0, 0])
 
         if tmr%200 == 0:
@@ -331,6 +355,14 @@ def main():
                     pg.display.update()
                     time.sleep(2)
                     return
+        for bomb in pg.sprite.spritecollide(bird, bombs, True):  # こうかとんと衝突した爆弾リスト
+            if hasattr(bomb, "state") and bomb.state == "inactive":
+                continue
+            bird.change_img(8, screen)  # こうかとん悲しみエフェクト
+            score.update(screen)
+            pg.display.update()
+            time.sleep(2)
+            return
 
         bird.update(key_lst, screen)
         beams.update()
