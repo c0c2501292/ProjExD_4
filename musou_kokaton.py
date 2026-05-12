@@ -245,24 +245,21 @@ class EMP:
     電磁パルス（EMP）: 発動時に存在する敵機と爆弾を無効化する
     """
     def __init__(self, enemies: pg.sprite.Group, bombs: pg.sprite.Group, screen: pg.Surface):
-        # 1. スコア消費後の処理として、敵機を無効化
         for emy in enemies:
-            emy.interval = float("inf") # 爆弾投下間隔を無限に
-            emy.image = pg.transform.laplacian(emy.image) # ラプラシアンフィルタ
-            emy.image.set_colorkey((0, 0, 0)) # 背景透過の維持
-            
-        # 2. 爆弾を無効化
-        for bomb in bombs:
-            bomb.speed /= 2 # 速度を半減
-            bomb.state = "inactive" # ぶつかっても死なない状態（後述の衝突判定で利用）
+            emy.interval = float("inf")
+            emy.image = pg.transform.laplacian(emy.image)
+            emy.image.set_colorkey((0, 0, 0))
 
-        # 3. 見た目：画面全体に透明度のある黄色の矩形を0.05秒表示
+        for bomb in bombs:
+            bomb.speed /= 2
+            bomb.state = "inactive"
+
         emp_img = pg.Surface((WIDTH, HEIGHT))
-        pg.draw.rect(emp_img, (255, 255, 0), (0, 0, WIDTH, HEIGHT)) # 黄色の矩形
-        emp_img.set_alpha(100) # 透明度
+        pg.draw.rect(emp_img, (255, 255, 0), (0, 0, WIDTH, HEIGHT))
+        emp_img.set_alpha(100)
         screen.blit(emp_img, [0, 0])
         pg.display.update()
-        time.sleep(0.05) # 0.05秒表示
+        time.sleep(0.05)
         
 def main():
     pg.display.set_caption("真！こうかとん無双")
